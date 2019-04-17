@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using ProtoBuf;
 using UnityEngine;
 
@@ -42,29 +43,39 @@ namespace Oxide.Plugins
         {
             return entity.GetBuildingPrivilege().authorizedPlayers.Any(x => x.userid == player.userID);
         }
+
+        private static List<BasePlayer> Targets;
     
         public class SamController : MonoBehaviour
         {
+            
             public SamSite entity;
-            private readonly List<BasePlayer> targets = new List<BasePlayer>();
-           
+            
             private void Awake()
             {
                 entity = GetComponent<SamSite>();
-                entity.enabled = true;
             }
 
             public void FixedUpdate()
             {
                 if (entity.currentTarget == null) return;
-                Vis.Entities(entity.currentTarget.transform.position, 1, targets);
-                foreach (var target in targets)
+                Targets = new List<BasePlayer>();
+                Vis.Entities(entity.currentTarget.transform.position, 1, Targets);
+                foreach (var target in Targets)
                 {
                     if (!IsAuthed(target, entity)) continue;
                     entity.currentTarget = null;
-                    entity.CancelInvoke((entity.WeaponTick));
+                    entity.CancelInvoke(entity.WeaponTick);
+                    break;
                 }
             }
         }
+        
+        /*var player = entity.currentTarget.GetComponentsInChildren<BaseMountable>()[1]._mounted;
+
+                if (!IsAuthed(player, entity)) return;
+                
+                entity.currentTarget = null;
+                entity.CancelInvoke(entity.WeaponTick);*/
     }
 }
