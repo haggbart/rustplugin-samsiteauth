@@ -6,16 +6,16 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("SAMSiteAuth", "Kektus", "1.0.0")]
+    [Info("SAMSiteAuth", "Kektus", "1.0.1")]
     [Description("Makes SAM Sites act in a similar fashion to shotgun traps and flame turrets.")]
     public class SAMSiteAuth : RustPlugin
     {
         private void Init()
         {
-            var entities = BaseNetworkable.serverEntities.Where(p => (p is global::SamSite)).ToList();
+            var entities = BaseNetworkable.serverEntities.Where(p => p is SamSite).ToList();
             foreach (var entity in entities)
             {
-                var samsite = entity as global::SamSite;
+                var samsite = entity as SamSite;
                 if (!samsite.GetBuildingPrivilege().IsValid()) continue;
                 entity.gameObject.AddComponent<SamController>();
             }
@@ -34,25 +34,23 @@ namespace Oxide.Plugins
         private void OnEntityBuilt(Planner plan, GameObject go)
         {
             var entity = go.GetComponent<BaseEntity>();
-            if (entity is global::SamSite)
+            if (entity is SamSite)
                 entity.gameObject.AddComponent<SamController>();
         }
 
         private static bool IsAuthed(BasePlayer player, BaseEntity entity)
         {
-            return entity.GetBuildingPrivilege().authorizedPlayers.Any<PlayerNameID>((PlayerNameID x) => x.userid == player.userID);
+            return entity.GetBuildingPrivilege().authorizedPlayers.Any(x => x.userid == player.userID);
         }
     
-        
         public class SamController : MonoBehaviour
         {
-            
-            public global::SamSite entity;
+            public SamSite entity;
             private readonly List<BasePlayer> targets = new List<BasePlayer>();
            
             private void Awake()
             {
-                entity = GetComponent<global::SamSite>();
+                entity = GetComponent<SamSite>();
                 entity.enabled = true;
             }
 
@@ -64,7 +62,7 @@ namespace Oxide.Plugins
                 {
                     if (!IsAuthed(target, entity)) continue;
                     entity.currentTarget = null;
-                    entity.CancelInvoke(new Action(entity.WeaponTick));
+                    entity.CancelInvoke((entity.WeaponTick));
                 }
             }
         }
