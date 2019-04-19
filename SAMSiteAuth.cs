@@ -7,11 +7,11 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("SAMSiteAuth", "Kektus", "1.0.1")]
+    [Info("SAMSiteAuth", "Kektus", "1.0.2")]
     [Description("Makes SAM Sites act in a similar fashion to shotgun traps and flame turrets.")]
     public class SAMSiteAuth : RustPlugin
     {
-        private void Init()
+        private void OnServerInitialized()
         {
             var entities = BaseNetworkable.serverEntities.Where(p => p is SamSite).ToList();
             foreach (var entity in entities)
