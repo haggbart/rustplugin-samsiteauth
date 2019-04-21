@@ -1,38 +1,27 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using ProtoBuf;
 using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("SAMSiteAuth", "Kektus", "1.1.0")]
+    [Info("SAMSiteAuth", "Kektus", "1.1.1")]
     [Description("Makes SAM Sites act in a similar fashion to shotgun traps and flame turrets.")]
     public class SAMSiteAuth : RustPlugin
     {
         private static List<BasePlayer> Players;
         private static BaseVehicleSeat Seat;
-        private static readonly Dictionary<uint, Delegate> _IsAuthed = new Dictionary<uint, Delegate>();
-
-        private static void InitFunctions()
+        private static readonly Dictionary<uint, Delegate> _IsAuthed = new Dictionary<uint, Delegate>()
         {
-            _IsAuthed.Add(2278499844, new Func<SamSite, bool>(IsPilot)); // minicopter
-            _IsAuthed.Add(1675349834, new Func<SamSite, bool>(IsPilot)); // chinook
-            _IsAuthed.Add(350141265, new Func<SamSite, bool>(IsPilot)); // sedan
-            _IsAuthed.Add(3111236903, new Func<SamSite, bool>(IsVicinity)); // balloon
-        }
+            { 2278499844,  new Func<SamSite, bool>(IsPilot) },
+            { 1675349834, new Func<SamSite, bool>(IsPilot) },
+            { 350141265, new Func<SamSite, bool>(IsPilot) },
+            { 3111236903, new Func<SamSite, bool>(IsVicinity) }
+        };
 
         private void OnServerInitialized()
         {
-            var entities = BaseNetworkable.serverEntities.Where(p => p is SamSite).ToList();
-            foreach (var entity in entities)
-            {
-                var samsite = entity as SamSite;
-                if (!samsite.GetBuildingPrivilege().IsValid()) continue;
-                entity.gameObject.AddComponent<SamController>();
-            }
-            InitFunctions();
+            NextTick(InitSAMSites);
         }
         
         private void Unload()
@@ -42,6 +31,17 @@ namespace Oxide.Plugins
             foreach (var obj in objects)
             {
                 UnityEngine.Object.Destroy(obj);
+            }   
+        }
+
+        private static void InitSAMSites()
+        {
+            var entities = BaseNetworkable.serverEntities.Where(p => p is SamSite).ToList();
+            foreach (var entity in entities)
+            {
+                var samsite = entity as SamSite;
+                if (!samsite.GetBuildingPrivilege().IsValid()) continue;
+                entity.gameObject.AddComponent<SamController>();
             }
         }
 
@@ -61,7 +61,7 @@ namespace Oxide.Plugins
 
         private static bool IsPilot(SamSite entity)
         {
-            Seat = entity.currentTarget.GetComponentsInChildren<BaseVehicleSeat>().First();
+            Seat = entity.currentTarget.GetComponentsInChildren<BaseVehicleSeat>()[0];
             return Seat._mounted != null && IsAuthed(Seat._mounted, entity);
         }
 
@@ -76,16 +76,16 @@ namespace Oxide.Plugins
             return false;
         }
 
-        public class SamController : MonoBehaviour
+        private class SamController : MonoBehaviour
         {
-            public SamSite entity;
+            private SamSite entity;
             
             private void Awake()
             {
                 entity = GetComponent<SamSite>();
             }
 
-            public void FixedUpdate()
+            private void FixedUpdate()
             {
                 if (entity.currentTarget == null) return;
                 if (!_IsAuthed.ContainsKey(entity.currentTarget.prefabID)) return;
