@@ -5,18 +5,18 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("SAMSiteAuth", "Kektus", "1.1.1")]
+    [Info("SAMSiteAuth", "haggbart", "1.2.0")]
     [Description("Makes SAM Sites act in a similar fashion to shotgun traps and flame turrets.")]
     public class SAMSiteAuth : RustPlugin
     {
-        private static List<BasePlayer> Players;
+        private static readonly List<BasePlayer> Players = new List<BasePlayer>();
         private static BaseVehicleSeat Seat;
         private static readonly Dictionary<uint, Delegate> _IsAuthed = new Dictionary<uint, Delegate>()
         {
-            { 2278499844,  new Func<SamSite, bool>(IsPilot) },
-            { 1675349834, new Func<SamSite, bool>(IsPilot) },
-            { 350141265, new Func<SamSite, bool>(IsPilot) },
-            { 3111236903, new Func<SamSite, bool>(IsVicinity) }
+            { 2278499844,  new Func<SamSite, bool>(IsPilot) },   // minicopter 
+            { 1675349834, new Func<SamSite, bool>(IsPilot) },    // ch47
+            { 350141265, new Func<SamSite, bool>(IsPilot) },     // sedan
+            { 3111236903, new Func<SamSite, bool>(IsVicinity) }  // balloon
         };
 
         private void OnServerInitialized()
@@ -62,13 +62,14 @@ namespace Oxide.Plugins
         private static bool IsPilot(SamSite entity)
         {
             Seat = entity.currentTarget.GetComponentsInChildren<BaseVehicleSeat>()[0];
-            return Seat._mounted != null && IsAuthed(Seat._mounted, entity);
+            return Seat._mounted == null || IsAuthed(Seat._mounted, entity);
         }
 
         private static bool IsVicinity(SamSite entity)
         {
-            Players = new List<BasePlayer>();
+            Players.Clear();
             Vis.Entities(entity.currentTarget.transform.position, 2, Players);
+            if (Players.Count == 0) return true;
             foreach (var player in Players)
             {
                 if (IsAuthed(player, entity)) return true;
