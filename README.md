@@ -2,7 +2,6 @@ Makes SAM Sites act in a similar fashion to shotgun traps and flame turrets by c
 
 Also prevents these SAM Sites from shooting cold vehicles (defined entities without pilots). 
 
-# Configuration
 Supports sedan and ch47 if you use the server setting samsite.alltarget true (console command)
 
 
