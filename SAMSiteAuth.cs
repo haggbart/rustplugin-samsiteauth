@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("SAMSiteAuth", "haggbart", "2.0.0")]
+    [Info("SAMSiteAuth", "haggbart", "2.0.1")]
     [Description("Makes SAM Sites act in a similar fashion to shotgun traps and flame turrets.")]
     class SAMSiteAuth : RustPlugin
     {
@@ -18,13 +19,16 @@ namespace Oxide.Plugins
             { 3111236903, new Func<SamSite, bool>(IsVicinity) }  // balloon
         };
         
+        #region canshoot
+        
         private object CanSamSiteShoot(SamSite samSite)
         {
-            if (samSite.OwnerID == 0 || samSite.currentTarget == null) return null; // currentTarget is null in some cases
+            if (samSite.OwnerID == 0) return null; // currentTarget is null in some cases
+            if (samSite.currentTarget == null) return false;
             if (!_IsAuthed.ContainsKey(samSite.currentTarget.prefabID)) return null;
             if (!(bool) _IsAuthed[samSite.currentTarget.prefabID].DynamicInvoke(samSite)) return null;
             samSite.currentTarget = null;
-            samSite.CancelInvoke(samSite.WeaponTick);
+            samSite.lockOnTime = Time.time + 5f;
             return false;
         }
 
@@ -50,5 +54,7 @@ namespace Oxide.Plugins
         {
             return entity.GetBuildingPrivilege().authorizedPlayers.Any(x => x.userid == player.userID);
         }
+        
+        #endregion canshoot
     }
 }
