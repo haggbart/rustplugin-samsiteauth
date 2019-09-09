@@ -1,4 +1,4 @@
-Makes SAM Sites act in a similar fashion to shotgun traps and flame turrets by checking if players flying minicopter/balloon are authorized on the cupboard.
+Makes SAM Sites act in a similar fashion to shotgun traps and flame turrets by checking if players operating vehicles are authorized on the cupboard.
 
 
 # v 2.0.0 requires umod v2.0.4195 or later

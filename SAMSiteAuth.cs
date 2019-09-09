@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("SAMSiteAuth", "haggbart", "2.0.1")]
+    [Info("SAMSiteAuth", "haggbart", "2.1.0")]
     [Description("Makes SAM Sites act in a similar fashion to shotgun traps and flame turrets.")]
     class SAMSiteAuth : RustPlugin
     {
@@ -13,10 +13,11 @@ namespace Oxide.Plugins
         private static BaseVehicleSeat Seat;
         private readonly Dictionary<uint, Delegate> _IsAuthed = new Dictionary<uint, Delegate>()
         {
-            { 2278499844,  new Func<SamSite, bool>(IsPilot) },   // minicopter 
-            { 1675349834, new Func<SamSite, bool>(IsPilot) },    // ch47
-            { 350141265, new Func<SamSite, bool>(IsPilot) },     // sedan
-            { 3111236903, new Func<SamSite, bool>(IsVicinity) }  // balloon
+            { 2278499844,  new Func<SamSite, bool>(IsPilot) },       // minicopter 
+            { 1675349834, new Func<SamSite, bool>(IsPilot) },        // ch47
+            { 350141265, new Func<SamSite, bool>(IsPilot) },         // sedan
+            { 3484163637, new Func<SamSite, bool>(IsPilot) },        // scrapheli​
+            { 3111236903, new Func<SamSite, bool>(IsVicinity) }     // balloon
         };
         
         #region canshoot
@@ -42,12 +43,7 @@ namespace Oxide.Plugins
         {
             Players.Clear();
             Vis.Entities(entity.currentTarget.transform.position, 2, Players);
-            if (Players.Count == 0) return true;
-            foreach (var player in Players)
-            {
-                if (IsAuthed(player, entity)) return true;
-            }
-            return false;
+            return Players.Count == 0 || Players.Any(player => IsAuthed(player, entity));
         }
         
         private static bool IsAuthed(BasePlayer player, BaseEntity entity)
