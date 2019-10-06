@@ -1,56 +1,81 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("SAMSiteAuth", "haggbart", "2.1.0")]
+    [Info("SAMSiteAuth", "haggbart", "2.2.3")]
     [Description("Makes SAM Sites act in a similar fashion to shotgun traps and flame turrets.")]
     class SAMSiteAuth : RustPlugin
     {
-        private static readonly List<BasePlayer> Players = new List<BasePlayer>();
-        private static BaseVehicleSeat Seat;
-        private readonly Dictionary<uint, Delegate> _IsAuthed = new Dictionary<uint, Delegate>()
-        {
-            { 2278499844,  new Func<SamSite, bool>(IsPilot) },       // minicopter 
-            { 1675349834, new Func<SamSite, bool>(IsPilot) },        // ch47
-            { 350141265, new Func<SamSite, bool>(IsPilot) },         // sedan
-            { 3484163637, new Func<SamSite, bool>(IsPilot) },        // scrapheli​
-            { 3111236903, new Func<SamSite, bool>(IsVicinity) }     // balloon
-        };
+        private static readonly List<BasePlayer> players = new List<BasePlayer>();
+        private static Dictionary<uint, int> vehicles;
+        private static BaseVehicleSeat seat;
+        private static BuildingPrivlidge buildingPrivlidge;
         
-        #region canshoot
+        private const string ALLTARGET = "samsite.alltarget";
+        private const string TARGET_HELI = "Target heli (requires alltarget)";
         
-        private object CanSamSiteShoot(SamSite samSite)
+        protected override void LoadDefaultConfig()
         {
-            if (samSite.OwnerID == 0) return null; // currentTarget is null in some cases
-            if (samSite.currentTarget == null) return false;
-            if (!_IsAuthed.ContainsKey(samSite.currentTarget.prefabID)) return null;
-            if (!(bool) _IsAuthed[samSite.currentTarget.prefabID].DynamicInvoke(samSite)) return null;
-            samSite.currentTarget = null;
-            samSite.lockOnTime = Time.time + 5f;
-            return false;
+            Config[ALLTARGET] = false;
+            Config[TARGET_HELI] = true;
+        }
+        
+        private void Init()
+        {
+            vehicles = new Dictionary<uint, int>
+            {
+                { 2278499844,  1 },   // minicopter 
+                { 1675349834, 1 },    // ch47
+                { 350141265, 1 },     // sedan
+                { 3484163637, 1 },    // scrapheli​
+                { 3111236903, 2 }     // balloon
+            };
+            if (!(bool)Config[ALLTARGET]) return;
+            SamSite.alltarget = true;
+            if (!(bool)Config[TARGET_HELI]) vehicles.Add(3029415845, 0); // attack heli
         }
 
+        private void Unload() => SamSite.alltarget = false;
+
+        
+        
+        private void OnSamSiteTarget(SamSite samSite, BaseCombatEntity target) 
+        {
+            if (samSite.OwnerID == 0) return; 
+            if (!vehicles.ContainsKey(target.prefabID)) return;
+            if (!isAuthed(samSite, vehicles[target.prefabID])) return;
+            samSite.currentTarget = null;
+        }
+
+        private static bool isAuthed(SamSite samSite, int kind)
+        {
+            switch (kind)
+            {
+                case 0: return true;
+                case 1: return IsPilot(samSite);
+                case 2: return IsVicinity(samSite);
+                default: return false;
+            }
+        }
+        
         private static bool IsPilot(SamSite entity)
         {
-            Seat = entity.currentTarget.GetComponentsInChildren<BaseVehicleSeat>()[0];
-            return Seat._mounted == null || IsAuthed(Seat._mounted, entity);
+            seat = entity.currentTarget.GetComponentsInChildren<BaseVehicleSeat>()[0];
+            return seat._mounted == null || IsAuthed(seat._mounted, entity);
         }
 
         private static bool IsVicinity(SamSite entity)
         {
-            Players.Clear();
-            Vis.Entities(entity.currentTarget.transform.position, 2, Players);
-            return Players.Count == 0 || Players.Any(player => IsAuthed(player, entity));
+            players.Clear();
+            Vis.Entities(entity.currentTarget.transform.position, 2, players);
+            return players.Count == 0 || players.Any(player => IsAuthed(player, entity));
         }
         
         private static bool IsAuthed(BasePlayer player, BaseEntity entity)
         {
-            return entity.GetBuildingPrivilege().authorizedPlayers.Any(x => x.userid == player.userID);
+            buildingPrivlidge = entity.GetBuildingPrivilege();
+            return buildingPrivlidge != null && entity.GetBuildingPrivilege().authorizedPlayers.Any(x => x.userid == player.userID);
         }
-        
-        #endregion canshoot
     }
 }
