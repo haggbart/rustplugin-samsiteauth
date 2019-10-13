@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Oxide.Plugins
 {
-    [Info("SAMSiteAuth", "haggbart", "2.2.3")]
+    [Info("SAMSiteAuth", "haggbart", "2.3.0")]
     [Description("Makes SAM Sites act in a similar fashion to shotgun traps and flame turrets.")]
     class SAMSiteAuth : RustPlugin
     {
@@ -37,12 +37,16 @@ namespace Oxide.Plugins
         }
 
         private void Unload() => SamSite.alltarget = false;
-
-        
         
         private void OnSamSiteTarget(SamSite samSite, BaseCombatEntity target) 
         {
-            if (samSite.OwnerID == 0) return; 
+            if (samSite.OwnerID == 0) 
+            {
+                if (!SamSite.alltarget) return; // stop monument samsites from shooting attack heli or ch47
+                if (target.prefabID == 1514383717 || target.prefabID == 3029415845) 
+                    samSite.currentTarget = null;
+                return;
+            }
             if (!vehicles.ContainsKey(target.prefabID)) return;
             if (!isAuthed(samSite, vehicles[target.prefabID])) return;
             samSite.currentTarget = null;
@@ -59,6 +63,12 @@ namespace Oxide.Plugins
             }
         }
         
+        private static bool IsAuthed(BasePlayer player, BaseEntity entity)
+        {
+            buildingPrivlidge = entity.GetBuildingPrivilege();
+            return buildingPrivlidge != null && entity.GetBuildingPrivilege().authorizedPlayers.Any(x => x.userid == player.userID);
+        }
+        
         private static bool IsPilot(SamSite entity)
         {
             seat = entity.currentTarget.GetComponentsInChildren<BaseVehicleSeat>()[0];
@@ -70,12 +80,6 @@ namespace Oxide.Plugins
             players.Clear();
             Vis.Entities(entity.currentTarget.transform.position, 2, players);
             return players.Count == 0 || players.Any(player => IsAuthed(player, entity));
-        }
-        
-        private static bool IsAuthed(BasePlayer player, BaseEntity entity)
-        {
-            buildingPrivlidge = entity.GetBuildingPrivilege();
-            return buildingPrivlidge != null && entity.GetBuildingPrivilege().authorizedPlayers.Any(x => x.userid == player.userID);
         }
     }
 }
