@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Oxide.Plugins
 {
-    [Info("SAMSiteAuth", "haggbart", "2.3.1")]
+    [Info("SAMSiteAuth", "haggbart", "2.3.2")]
     [Description("Makes SAM Sites act in a similar fashion to shotgun traps and flame turrets.")]
     class SAMSiteAuth : RustPlugin
     {
@@ -25,11 +25,11 @@ namespace Oxide.Plugins
         {
             vehicles = new Dictionary<uint, int>
             {
-                {2278499844, 1}, // minicopter 
-                {1675349834, 1}, // ch47
-                {350141265, 1}, // sedan
-                {3484163637, 1}, // scrapheli​
-                {3111236903, 2} // balloon
+                {2278499844, 1},     // minicopter 
+                {1675349834, 1},     // ch47
+                {350141265, 1},      // sedan
+                {3484163637, 1},     // scrapheli​
+                {3111236903, 2}      // balloon
             };
             if (!(bool) Config[ALLTARGET]) return;
             SamSite.alltarget = true;
@@ -40,14 +40,23 @@ namespace Oxide.Plugins
 
         private void OnSamSiteTarget(SamSite samSite, BaseCombatEntity target)
         {
-            if (samSite.OwnerID == 0)
+            if (SamSite.alltarget)
             {
-                if (!SamSite.alltarget) return; // stop monument samsites from shooting attack heli or ch47
-                if (target.prefabID == 1514383717 || target.prefabID == 3029415845)
+                if (samSite.OwnerID == 0) // stop monument samsites from shooting attack heli or ch47
+                {
+                    if (SamSite.alltarget && (target.prefabID == 1514383717 || target.prefabID == 3029415845))
+                    {
+                        samSite.currentTarget = null;
+                        return;
+                    }
+                }
+                if (target.prefabID == 209286362) // stop hackable crate being shot
+                {
                     samSite.currentTarget = null;
-                return;
+                    return;
+                }
             }
-
+            
             if (!vehicles.ContainsKey(target.prefabID)) return;
             if (!isAuthed(samSite, vehicles[target.prefabID])) return;
             samSite.currentTarget = null;
