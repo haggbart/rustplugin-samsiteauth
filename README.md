@@ -8,4 +8,4 @@ Supports sedan, ch47 and patrol helicopter if you use set samsite.alltarget to t
 ## Configuration
 
 * `samsite.alltarget:` (true/false)
-* `Target heli (requires alltarget):` (true/false)
+* `Target heli (requires alltarget):` (true/false) **doesn't work anymore**
