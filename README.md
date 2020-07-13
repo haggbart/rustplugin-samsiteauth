@@ -2,10 +2,10 @@ Makes SAM Sites act in a similar fashion to shotgun traps and flame turrets by c
 
 Also prevents these SAM Sites from shooting cold vehicles (defined entities without pilots).
 
-Supports sedan, ch47 and patrol helicopter if you use set samsite.alltarget to true, see below.
+Supports other if you use set samsite.alltarget to true, not recommended, see below.
 
 
 ## Configuration
 
-* `samsite.alltarget:` (true/false)
-* `Target heli (requires alltarget):` (true/false) **doesn't work anymore**
+* `samsite.alltarget:` false is recommended, true makes samsite target other vehicles as well
+* `Target heli (requires alltarget):` (true/false) **doesn't work currently**
