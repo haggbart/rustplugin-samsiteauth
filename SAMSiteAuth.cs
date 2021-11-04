@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Oxide.Plugins
 {
-    [Info("SAMSiteAuth", "haggbart", "2.3.3")]
+    [Info("SAMSiteAuth", "haggbart", "2.3.4")]
     [Description("Makes SAM Sites act in a similar fashion to shotgun traps and flame turrets.")]
     internal class SAMSiteAuth : RustPlugin
     {
@@ -32,16 +32,11 @@ namespace Oxide.Plugins
                 {3111236903, 2}      // balloon
             };
             if (!(bool)Config[ALLTARGET]) return;
-            SamSite.alltarget = true;
             if (!(bool)Config[TARGET_HELI]) vehicles.Add(3029415845, 0); // attack heli
         }
 
-        private void Unload() => SamSite.alltarget = false;
-
         private object OnSamSiteTarget(SamSite samSite, BaseCombatEntity target)
         {
-            if (SamSite.alltarget)
-            {
                 if (samSite.OwnerID == 0) // stop monument samsites from shooting attack heli or ch47
                 {
                     if (target.prefabID == 1514383717 || target.prefabID == 3029415845)
@@ -53,7 +48,7 @@ namespace Oxide.Plugins
                 {
                     return false;
                 }
-            }
+            
             int kind;
             if (!vehicles.TryGetValue(target.prefabID, out kind)) return null;
             if (!IsAuthed(samSite, target, kind)) return null;
