@@ -1,6 +1,9 @@
+using System.Collections.Generic;
+using static BaseVehicle;
+
 namespace Oxide.Plugins
 {
-    [Info("SAMSiteAuth", "haggbart", "2.4.0")]
+    [Info("SAMSiteAuth", "haggbart", "2.4.1")]
     [Description("Makes SAM Sites act in a similar fashion to shotgun traps and flame turrets.")]
     internal class SAMSiteAuth : RustPlugin
     {
@@ -11,21 +14,21 @@ namespace Oxide.Plugins
             if (samSite.staticRespawn)
                 return null;
 
+            var mountPoints = (target as BaseVehicle)?.mountPoints;
+            if (!IsOccupied(target, mountPoints))
+                return False;
+
             var cupboard = samSite.GetBuildingPrivilege();
             if ((object)cupboard == null)
                 return null;
 
-            var vehicle = target as BaseVehicle;
-            if ((object)vehicle != null)
+            if (mountPoints != null)
             {
-                if (vehicle.mountPoints != null)
+                foreach (var mountPoint in mountPoints)
                 {
-                    foreach (var mountPoint in vehicle.mountPoints)
-                    {
-                        var player = mountPoint.mountable.GetMounted();
-                        if ((object)player != null && IsAuthed(cupboard, player.userID))
-                            return False;
-                    }
+                    var player = mountPoint.mountable.GetMounted();
+                    if ((object)player != null && IsAuthed(cupboard, player.userID))
+                        return False;
                 }
             }
 
@@ -40,6 +43,27 @@ namespace Oxide.Plugins
             }
 
             return null;
+        }
+
+        private static bool IsOccupied(BaseCombatEntity entity, List<MountPointInfo> mountPoints)
+        {
+            if (mountPoints != null)
+            {
+                foreach (var mountPoint in mountPoints)
+                {
+                    var player = mountPoint.mountable.GetMounted();
+                    if ((object)player != null)
+                        return true;
+                }
+            }
+
+            foreach (var child in entity.children)
+            {
+                if (child is BasePlayer)
+                    return true;
+            }
+
+            return false;
         }
 
         private static bool IsAuthed(BuildingPrivlidge cupboard, ulong userId)
