@@ -18,7 +18,7 @@ namespace Oxide.Plugins
             if (samSite.staticRespawn)
                 return null;
 
-            var cupboard = samSite.GetBuildingPrivilege();
+            var cupboard = samSite.GetBuildingPrivilege(samSite.WorldSpaceBounds());
             if ((object)cupboard == null)
                 return null;
 
