@@ -3,7 +3,7 @@ using static BaseVehicle;
 
 namespace Oxide.Plugins
 {
-    [Info("SAMSiteAuth", "haggbart", "2.4.2")]
+    [Info("SAMSiteAuth", "haggbart", "2.4.3")]
     [Description("Makes SAM Sites act in a similar fashion to shotgun traps and flame turrets.")]
     internal class SAMSiteAuth : RustPlugin
     {
@@ -11,14 +11,14 @@ namespace Oxide.Plugins
 
         private object OnSamSiteTarget(SamSite samSite, BaseCombatEntity target)
         {
-            if (samSite.staticRespawn)
-                return null;
-
             var mountPoints = (target as BaseVehicle)?.mountPoints;
             if (!IsOccupied(target, mountPoints))
                 return True;
 
-            var cupboard = samSite.GetBuildingPrivilege();
+            if (samSite.staticRespawn)
+                return null;
+
+            var cupboard = samSite.GetBuildingPrivilege(samSite.WorldSpaceBounds());
             if ((object)cupboard == null)
                 return null;
 
