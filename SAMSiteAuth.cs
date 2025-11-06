@@ -3,7 +3,7 @@ using static BaseVehicle;
 
 namespace Oxide.Plugins
 {
-    [Info("SAMSiteAuth", "haggbart", "2.4.3")]
+    [Info("SAMSiteAuth", "haggbart", "2.4.4")]
     [Description("Makes SAM Sites act in a similar fashion to shotgun traps and flame turrets.")]
     internal class SAMSiteAuth : RustPlugin
     {
@@ -68,13 +68,7 @@ namespace Oxide.Plugins
 
         private static bool IsAuthed(BuildingPrivlidge cupboard, ulong userId)
         {
-            foreach (var entry in cupboard.authorizedPlayers)
-            {
-                if (entry.userid == userId)
-                    return true;
-            }
-
-            return false;
+            return cupboard.authorizedPlayers.Contains( userId );
         }
     }
 }
