@@ -3,7 +3,7 @@ using static BaseVehicle;
 
 namespace Oxide.Plugins
 {
-    [Info("SAMSiteAuth", "haggbart", "2.4.4")]
+    [Info("SAMSiteAuth", "haggbart", "2.4.5")]
     [Description("Makes SAM Sites act in a similar fashion to shotgun traps and flame turrets.")]
     internal class SAMSiteAuth : RustPlugin
     {
